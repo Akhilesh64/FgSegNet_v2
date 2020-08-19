@@ -1,10 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Mon Jun 27 2018
-
-@author: longang
-"""
 import numpy as np
 import keras
 from keras import layers
@@ -115,10 +108,12 @@ class FgSegNet_v2_module(object):
         return x
 
     def resnet50(self,x):
+        a = Conv2D(64, (7, 7), strides=(1, 1), name='custom_conv1')(x)
         x = ZeroPadding2D((3, 3))(x)
         x = Conv2D(64, (7, 7), strides=(2, 2), name='conv1')(x)
         x = BatchNormalization(axis=3, name='bn_conv1')(x)
         x = Activation('relu')(x)
+        b = Conv2D(128, (7, 7), strides=(1, 1), name='custom_conv2')(x)
         #x = MaxPooling2D((3, 3), strides=(2, 2))(x)
 
         x = self.conv_block(x, 3, [64, 64, 256], stage=2, block='a', strides=(1, 1))
@@ -143,12 +138,12 @@ class FgSegNet_v2_module(object):
         x = identity_block(x, 3, [512, 512, 2048], stage=5, block='b')
         x = identity_block(x, 3, [512, 512, 2048], stage=5, block='c')'''
 
-        return x
+        return x,a,b
 
-    def decoder(self,x):
-        '''a = GlobalAveragePooling2D()(a)
+    def decoder(self,x,a,b):
+        a = GlobalAveragePooling2D()(a)
         b = Conv2D(64, (1, 1), strides=1, padding='same')(b)
-        b = GlobalAveragePooling2D()(b)'''
+        b = GlobalAveragePooling2D()(b)
         
         x = Conv2D(64, (3, 3), strides=1, padding='same')(x)
         x = InstanceNormalization()(x)
@@ -212,7 +207,7 @@ class FgSegNet_v2_module(object):
             if(layer.name not in unfreeze_layers):
                 layer.trainable = False
                 
-        x = model.output
+        x,a,b = model.output
         
         # pad in case of CDnet2014
         if dataset_name=='CDnet':
@@ -224,7 +219,7 @@ class FgSegNet_v2_module(object):
                     break
                 
         x = self.M_FPM(x)
-        x = self.decoder(x)
+        x = self.decoder(x,a,b)
         
         # pad in case of CDnet2014
         if dataset_name=='CDnet':
