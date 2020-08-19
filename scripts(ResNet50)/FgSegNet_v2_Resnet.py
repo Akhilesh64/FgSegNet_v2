@@ -109,7 +109,7 @@ class FgSegNet_v2_module(object):
 
     def resnet50(self,x):
         a = Conv2D(64, (7, 7), strides=(1, 1), name='custom_conv1')(x)
-        x = ZeroPadding2D((3, 3))(x)
+        #x = ZeroPadding2D((3, 3))(x)
         x = Conv2D(64, (7, 7), strides=(2, 2), name='conv1')(x)
         x = BatchNormalization(axis=3, name='bn_conv1')(x)
         x = Activation('relu')(x)
