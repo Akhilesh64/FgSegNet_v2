@@ -120,7 +120,6 @@ class FgSegNet_v2_module(object):
         x = self.identity_block(x, 3, [64, 64, 256], stage=2, block='c')
 
         x = self.conv_block(x, 3, [128, 128, 512], stage=3, block='a')
-        x = Dropout(0.5, name='dr1')(x)
         x = self.identity_block(x, 3, [128, 128, 512], stage=3, block='b')
         x = self.identity_block(x, 3, [128, 128, 512], stage=3, block='c')
         x = self.identity_block(x, 3, [128, 128, 512], stage=3, block='d')
