@@ -107,40 +107,28 @@ class FgSegNet_v2_module(object):
         x = Activation('relu')(x)
         return x
 
-    def resnet50(self,x):
+    def resnet50(self, x):
         a = Conv2D(64, (7, 7), strides=(1, 1), name='custom_conv1')(x)
-        #x = ZeroPadding2D((3, 3))(x)
+        x = ZeroPadding2D((2, 2))(x)
         x = Conv2D(64, (7, 7), strides=(2, 2), name='conv1')(x)
         x = BatchNormalization(axis=3, name='bn_conv1')(x)
         x = Activation('relu')(x)
         b = Conv2D(128, (7, 7), strides=(1, 1), name='custom_conv2')(x)
-        #x = MaxPooling2D((3, 3), strides=(2, 2))(x)
 
         x = self.conv_block(x, 3, [64, 64, 256], stage=2, block='a', strides=(1, 1))
+        x = Dropout(0.5, name='dr1')(x)
         x = self.identity_block(x, 3, [64, 64, 256], stage=2, block='b')
         x = self.identity_block(x, 3, [64, 64, 256], stage=2, block='c')
 
         x = self.conv_block(x, 3, [128, 128, 512], stage=3, block='a')
-        x = Dropout(0.5, name='dr1')(x)
+        x = Dropout(0.5, name='dr2')(x)
         x = self.identity_block(x, 3, [128, 128, 512], stage=3, block='b')
         x = self.identity_block(x, 3, [128, 128, 512], stage=3, block='c')
         x = self.identity_block(x, 3, [128, 128, 512], stage=3, block='d')
-        
 
-        '''x = conv_block(x, 3, [256, 256, 1024], stage=4, block='a')
-        x = identity_block(x, 3, [256, 256, 1024], stage=4, block='b')
-        x = identity_block(x, 3, [256, 256, 1024], stage=4, block='c')
-        x = identity_block(x, 3, [256, 256, 1024], stage=4, block='d')
-        x = identity_block(x, 3, [256, 256, 1024], stage=4, block='e')
-        x = identity_block(x, 3, [256, 256, 1024], stage=4, block='f')
+        return x, a, b
 
-        x = conv_block(x, 3, [512, 512, 2048], stage=5, block='a')
-        x = identity_block(x, 3, [512, 512, 2048], stage=5, block='b')
-        x = identity_block(x, 3, [512, 512, 2048], stage=5, block='c')'''
-
-        return x,a,b
-
-    def decoder(self,x,a,b):
+    def decoder(self, x, a, b):
         a = GlobalAveragePooling2D()(a)
         b = Conv2D(64, (1, 1), strides=1, padding='same')(b)
         b = GlobalAveragePooling2D()(b)
@@ -148,15 +136,15 @@ class FgSegNet_v2_module(object):
         x = Conv2D(64, (3, 3), strides=1, padding='same')(x)
         x = InstanceNormalization()(x)
         x = Activation('relu')(x)
-        #x1 = multiply([x, b])
-        #x = add([x, x1])
+        x1 = multiply([x, b])
+        x = add([x, x1])
         x = UpSampling2D(size=(2, 2))(x)
         
         x = Conv2D(64, (3, 3), strides=1, padding='same')(x)
         x = InstanceNormalization()(x)
         x = Activation('relu')(x)
-        #x2 = multiply([x, a])
-        #x = add([x, x2])
+        x2 = multiply([x, a])
+        x = add([x, x2])
         x = UpSampling2D(size=(2, 2))(x)
         
         x = Conv2D(64, (3, 3), strides=1, padding='same')(x)
@@ -202,22 +190,12 @@ class FgSegNet_v2_module(object):
         model = Model(inputs=net_input, outputs=resnet50_output, name='model')
         model.load_weights(self.resnet50_weights_path, by_name=True)
         
-        unfreeze_layers = []#['block4_conv1','block4_conv2', 'block4_conv3']
+        unfreeze_layers = []
         for layer in model.layers:
             if(layer.name not in unfreeze_layers):
                 layer.trainable = False
                 
-        x,a,b = model.output
-        
-        # pad in case of CDnet2014
-        if dataset_name=='CDnet':
-            x1_ups = {'streetCornerAtNight':(0,1), 'tramStation':(1,0), 'turbulence2':(1,0)}
-            for key, val in x1_ups.items():
-                if self.scene==key:
-                    # upscale by adding number of pixels to each dim.
-                    x = MyUpSampling2D(size=(1,1), num_pixels=val, method_name = self.method_name)(x)
-                    break
-                
+        x, a, b = model.output                   
         x = self.M_FPM(x)
         x = self.decoder(x,a,b)
         
@@ -255,4 +233,4 @@ class FgSegNet_v2_module(object):
         
         vision_model.compile(loss=c_loss, optimizer=opt, metrics=[c_acc])
         return vision_model
-
+    
