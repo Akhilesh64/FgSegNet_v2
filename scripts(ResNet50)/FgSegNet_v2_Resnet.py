@@ -220,15 +220,7 @@ class FgSegNet_v2_module(object):
 
         vision_model = Model(inputs=net_input, outputs=x, name='vision_model')
         opt = keras.optimizers.RMSprop(lr = self.lr, rho=0.9, epsilon=1e-08, decay=0.)
-        
-        # Since UCSD has no void label, we do not need to filter out
-        if dataset_name == 'UCSD':
-            c_loss = loss2
-            c_acc = acc2
-        else:
-            c_loss = loss
-            c_acc = acc
-        
+                
         vision_model.compile(loss=c_loss, optimizer=opt, metrics=[c_acc])
         return vision_model
     
