@@ -1,4 +1,3 @@
-import numpy as np
 import keras
 from keras import layers
 from keras.models import Model
@@ -108,12 +107,12 @@ class FgSegNet_v2_module(object):
         return x
 
     def resnet50(self, x):
-        a = Conv2D(64, (7, 7), strides=(1, 1), name='custom_conv1')(x)
+        a = Conv2D(64, (3, 3), strides=(1, 1), name='custom_conv1')(x)  
         x = ZeroPadding2D((2, 2))(x)
         x = Conv2D(64, (7, 7), strides=(2, 2), name='conv1')(x)
         x = BatchNormalization(axis=3, name='bn_conv1')(x)
         x = Activation('relu')(x)
-        b = Conv2D(128, (7, 7), strides=(1, 1), name='custom_conv2')(x)
+        b = Conv2D(128, (3, 3), strides=(1, 1), name='custom_conv2')(x)
 
         x = self.conv_block(x, 3, [64, 64, 256], stage=2, block='a', strides=(1, 1))
         x = self.identity_block(x, 3, [64, 64, 256], stage=2, block='b')
@@ -179,7 +178,7 @@ class FgSegNet_v2_module(object):
 
 
     def initModel(self, dataset_name):
-        assert dataset_name in ['CDnet', 'SBI', 'UCSD'], 'dataset_name must be either one in ["CDnet", "SBI", "UCSD"]]'
+        assert dataset_name in ['CDnet', 'SBI', 'UCSD'], 'dataset_name must ["CDnet]'
         assert len(self.img_shape)==3
         h, w, d = self.img_shape
         
@@ -188,14 +187,15 @@ class FgSegNet_v2_module(object):
         model = Model(inputs=net_input, outputs=resnet50_output, name='model')
         model.load_weights(self.resnet50_weights_path, by_name=True)
         
-        unfreeze_layers = []
         for layer in model.layers:
-            if(layer.name not in unfreeze_layers):
+            if('bn3' in layer.name or 'res3' in layer.name):
+                layer.trainable = True
+            else:
                 layer.trainable = False
                 
         x, a, b = model.output                   
         x = self.M_FPM(x)
-        x = self.decoder(x,a,b)
+        x = self.decoder(x, a, b)
         
         # pad in case of CDnet2014
         if dataset_name=='CDnet':
