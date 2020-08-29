@@ -48,7 +48,7 @@ class FgSegNet_v2_module(object):
         self.resnet50_weights_path = resnet50_weights_path
         self.method_name = 'FgSegNet_v2'
 
-    def identity_block(self, input_tensor, kernel_size, filters, stage, block):
+    def identity_block(self, input_tensor, kernel_size, filters, stage, block):                 #Identity Block for ResNet architecture
 
         filters1, filters2, filters3 = filters
         if K.image_data_format() == 'channels_last':
@@ -75,7 +75,7 @@ class FgSegNet_v2_module(object):
         return x
 
 
-    def conv_block(self, input_tensor, kernel_size, filters, stage, block, strides=(2, 2)):
+    def conv_block(self, input_tensor, kernel_size, filters, stage, block, strides=(2, 2)):      #Convolutional Block for ResNet architecture
         
         filters1, filters2, filters3 = filters
         if K.image_data_format() == 'channels_last':
@@ -107,12 +107,12 @@ class FgSegNet_v2_module(object):
         return x
 
     def resnet50(self, x):
-        a = Conv2D(64, (3, 3), strides=(1, 1), name='custom_conv1')(x)  
+        a = Conv2D(64, (3, 3), strides=(1, 1), name='custom_conv1')(x)                          #Low-level feature extraction for decoder 
         x = ZeroPadding2D((2, 2))(x)
         x = Conv2D(64, (7, 7), strides=(2, 2), name='conv1')(x)
         x = BatchNormalization(axis=3, name='bn_conv1')(x)
         x = Activation('relu')(x)
-        b = Conv2D(128, (3, 3), strides=(1, 1), name='custom_conv2')(x)
+        b = Conv2D(128, (3, 3), strides=(1, 1), name='custom_conv2')(x)                         #Low-level feature extraction for decoder
 
         x = self.conv_block(x, 3, [64, 64, 256], stage=2, block='a', strides=(1, 1))
         x = self.identity_block(x, 3, [64, 64, 256], stage=2, block='b')
@@ -187,7 +187,7 @@ class FgSegNet_v2_module(object):
         model = Model(inputs=net_input, outputs=resnet50_output, name='model')
         model.load_weights(self.resnet50_weights_path, by_name=True)
         
-        for layer in model.layers:
+        for layer in model.layers:                                        #Freezing all the layers and blocks except the last(third) block used in the encoder model
             if('bn3' in layer.name or 'res3' in layer.name):
                 layer.trainable = True
             else:
