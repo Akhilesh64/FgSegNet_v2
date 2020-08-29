@@ -182,7 +182,7 @@ if not os.path.exists(resnet50_weights_path):
 
 
 # =============================================================================
-num_frames = 25 # either 25 or 200 training frames
+num_frames = 200 # either 25 or 200 training frames
 # =============================================================================
 
 assert num_frames in [25,200], 'num_frames is incorrect.'
