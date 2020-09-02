@@ -144,7 +144,7 @@ class FgSegNet_v2_module(object):
         x = add([x, x2])
         x = UpSampling2D(size=(2, 2))(x)
         
-        x = Conv2D(64, (3, 3), strides=1, padding='same')(x)
+        x = Conv2D(128, (3, 3), strides=1, padding='same')(x)
         x = InstanceNormalization()(x)
         x = Activation('relu')(x)
             
