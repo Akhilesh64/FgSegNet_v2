@@ -178,7 +178,7 @@ class FgSegNet_v2_module(object):
 
 
     def initModel(self, dataset_name):
-        assert dataset_name in ['CDnet', 'SBI', 'UCSD'], 'dataset_name must ["CDnet]'
+        assert dataset_name in ['CDnet'], 'dataset_name must ["CDnet]'
         assert len(self.img_shape)==3
         h, w, d = self.img_shape
         
@@ -221,6 +221,6 @@ class FgSegNet_v2_module(object):
         vision_model = Model(inputs=net_input, outputs=x, name='vision_model')
         opt = keras.optimizers.RMSprop(lr = self.lr, rho=0.9, epsilon=1e-08, decay=0.)
                 
-        vision_model.compile(loss=c_loss, optimizer=opt, metrics=[c_acc])
+        vision_model.compile(loss=loss, optimizer=opt, metrics=[acc])
         return vision_model
     
