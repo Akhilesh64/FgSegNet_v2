@@ -129,7 +129,7 @@ def train(data, scene, mdl_path, resnet50_weights_path):
     ### hyper-params
     lr = 1e-4
     val_split = 0.2
-    max_epoch = 100
+    max_epoch = 300
     batch_size = 1
     ###
     
