@@ -188,9 +188,9 @@ class FgSegNet_v2_module(object):
         model.load_weights(self.resnet50_weights_path, by_name=True)
         
         for layer in model.layers:                                        #Freezing all the layers and blocks except the last(third) block used in the encoder model
-            #if('bn3' in layer.name or 'res3' in layer.name):
-            #    layer.trainable = True
-            #else:
+            if('bn3' in layer.name or 'res3' in layer.name):
+               layer.trainable = True
+            else:
                 layer.trainable = False
                 
         x, a, b = model.output                   
