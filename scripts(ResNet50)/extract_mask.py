@@ -8,7 +8,7 @@ Created on Mon Jun 27 2018
 # coding: utf-8
 #get_ipython().magic(u'load_ext autotime')
 import numpy as np
-import os, glob, sys
+import os, glob, sys, cv2
 #import keras_contrib
 from keras.preprocessing import image as kImage
 #from skimage.transform import pyramid_gaussian
@@ -63,29 +63,6 @@ def generateData(scene_input_path, X_list, scene):
     del img, x, X_list
     X = np.asarray(X)
     print ('\nShape' + str(X.shape))
-    
-# For FgSegNet (multi-scale)
-#    s2 = []
-#    s3 = []
-#    num_img = X.shape[0]
-#    prev = 0
-#    print ('\t- Downscale frames:')
-#    for i in range(0, num_img):
-#       pyramid = tuple(pyramid_gaussian(X[i]/255., max_layer=2, downscale=2))
-#       s2.append(pyramid[1]*255.)
-#       s3.append(pyramid[2]*255.)
-#       sys.stdout.write('\b' * prev)
-#       sys.stdout.write('\r')
-#       s = str(i+1)
-#       sys.stdout.write(s)
-#       prev = len(s)
-#       del pyramid
-#    s2 = np.asarray(s2)
-#    s3 = np.asarray(s3)
-#    print ('\n')
-#    print (s1.shape, s2.shape, s3.shape)
-
-#    return [X, s2, s3] #return for FgSegNet (multi-scale)
 
     return X #return for FgSegNet_v2
 
@@ -142,7 +119,8 @@ for category, scene_list in dataset.items():
         ROI_file = os.path.join(raw_dataset_dir, category, scene, 'ROI.bmp')
         
         # refer to http://jacarini.dinf.usherbrooke.ca/datasetOverview/
-        img = kImage.load_img(ROI_file, grayscale=True)
+        # img = kImage.load_img(ROI_file, grayscale=True)
+        img = cv2.imread(ROI_file, 0)
         img = kImage.img_to_array(img)
         img = img.reshape(-1) # to 1D
         idx = np.where(img == 0.)[0] # get the non-ROI, black area
