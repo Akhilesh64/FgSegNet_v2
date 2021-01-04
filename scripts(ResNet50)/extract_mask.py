@@ -26,7 +26,7 @@ def checkFrame(X_list):
     img = kImage.load_img(X_list[0])
     img = kImage.img_to_array(img).shape # (480,720,3)
     num_frames = len(X_list) # 7000
-    max_frames = 500 # max frames to slice
+    max_frames = 400 # max frames to slice
     if(img[1]>=300 and len(X_list)>max_frames):
         print ('\t- Total Frames:' + str(num_frames))
         num_chunks = num_frames/max_frames
